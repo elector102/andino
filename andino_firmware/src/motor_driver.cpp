@@ -1,3 +1,8 @@
+#include "motor_driver.h"
+
+#include "Arduino.h"
+#include "commands.h"
+
 void initMotorController() {
   digitalWrite(RIGHT_MOTOR_ENABLE, HIGH);
   digitalWrite(LEFT_MOTOR_ENABLE, HIGH);

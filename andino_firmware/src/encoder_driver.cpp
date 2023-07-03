@@ -1,3 +1,9 @@
+#include "encoder_driver.h"
+
+#include <stdint.h>
+
+#include "Arduino.h"
+#include "commands.h"
 
 volatile long left_enc_pos = 0L;
 volatile long right_enc_pos = 0L;
