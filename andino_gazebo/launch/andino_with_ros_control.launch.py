@@ -72,17 +72,17 @@ def generate_launch_description():
         launch_arguments={'use_gazebo_ros_control':'true'}.items()
     )
 
-    robot_description = get_robot_description('true')
-    controller_params_file = os.path.join(pkg_andino_control,'config','andino_controllers.yaml')
+    # robot_description = get_robot_description('true')
+    # controller_params_file = os.path.join(pkg_andino_control,'config','andino_controllers.yaml')
 
-    control_node = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
-        parameters=[{'robot_description':robot_description},
-                    controller_params_file],
+    # control_node = Node(
+    #     package="controller_manager",
+    #     executable="ros2_control_node",
+    #     parameters=[{'robot_description':robot_description},
+    #                 controller_params_file],
 
-        output="both",
-    )
+    #     output="both",
+    # )
 
     # Include ros control
 
@@ -114,7 +114,7 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
-    andino_visualization_timer = TimerAction(period=5.0, actions=[control_node,load_joint_state_controller])
+    andino_visualization_timer = TimerAction(period=5.0, actions=[load_joint_state_controller])
     return LaunchDescription([
         RegisterEventHandler(
             event_handler=OnProcessExit(
