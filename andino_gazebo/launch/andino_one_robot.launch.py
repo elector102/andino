@@ -40,51 +40,60 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from xacro import process_file
+
 
 def generate_launch_description():
     # Arguments
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    use_sim_time = LaunchConfiguration("use_sim_time")
 
-    use_sim_time_argument = DeclareLaunchArgument('use_sim_time',
-            default_value='true',
-            description='Use simulation (Gazebo) clock if true')
-    pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
-    pkg_andino_gazebo = get_package_share_directory('andino_gazebo')
-    
+    use_sim_time_argument = DeclareLaunchArgument(
+        "use_sim_time",
+        default_value="true",
+        description="Use simulation (Gazebo) clock if true",
+    )
+    pkg_gazebo_ros = get_package_share_directory("gazebo_ros")
+    pkg_andino_gazebo = get_package_share_directory("andino_gazebo")
+
     # Include andino
     include_andino = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_andino_gazebo, 'launch', 'spawn_robot.launch.py'),
+            os.path.join(pkg_andino_gazebo, "launch", "spawn_robot.launch.py")
         ),
-        launch_arguments={'use_gazebo_ros_control':'false'}.items()
+        launch_arguments={"use_gazebo_ros_control": "false"}.items(),
     )
     # Gazebo launch
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_gazebo_ros, 'launch', 'gazebo.launch.py'),
+            os.path.join(pkg_gazebo_ros, "launch", "gazebo.launch.py")
         )
-        )
-    
+    )
+
     # RViz
     rviz = Node(
-        package= 'rviz2',
-        executable= 'rviz2',
-        parameters= [{'use_sim_time':use_sim_time}],
-        arguments=['-d', os.path.join(pkg_andino_gazebo, 'rviz', 'andino_gazebo.rviz')],
-        condition=IfCondition(LaunchConfiguration('rviz'))
+        package="rviz2",
+        executable="rviz2",
+        parameters=[{"use_sim_time": use_sim_time}],
+        arguments=["-d", os.path.join(pkg_andino_gazebo, "rviz", "andino_gazebo.rviz")],
+        condition=IfCondition(LaunchConfiguration("rviz")),
     )
 
     andino_visualization_timer = TimerAction(period=5.0, actions=[rviz])
-    return LaunchDescription([
-        use_sim_time_argument,
-        DeclareLaunchArgument(
-          'world',
-          default_value=[os.path.join(pkg_andino_gazebo, 'worlds', 'empty_world.world'), ''],
-          description='SDF world file'),
-        DeclareLaunchArgument('rviz', default_value='true',
-                              description='Open RViz.'),
-        gazebo,
-        include_andino,
-        andino_visualization_timer
-    ])
+    return LaunchDescription(
+        [
+            use_sim_time_argument,
+            DeclareLaunchArgument(
+                "world",
+                default_value=[
+                    os.path.join(pkg_andino_gazebo, "worlds", "empty_world.world"),
+                    "",
+                ],
+                description="SDF world file",
+            ),
+            DeclareLaunchArgument(
+                "rviz", default_value="true", description="Open RViz."
+            ),
+            gazebo,
+            include_andino,
+            andino_visualization_timer,
+        ]
+    )

@@ -42,75 +42,94 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch.actions import ExecuteProcess
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import Command
-from launch_ros.parameter_descriptions import ParameterValue
-from xacro import process_file
-
 
 
 def generate_launch_description():
     # Arguments
-    use_sim_time = LaunchConfiguration('use_sim_time')
-    use_sim_time_argument = DeclareLaunchArgument('use_sim_time',
-            default_value='true',
-            description='Use simulation (Gazebo) clock if true')
-    pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
-    pkg_andino_gazebo = get_package_share_directory('andino_gazebo')
-    
+    use_sim_time = LaunchConfiguration("use_sim_time")
+    use_sim_time_argument = DeclareLaunchArgument(
+        "use_sim_time",
+        default_value="true",
+        description="Use simulation (Gazebo) clock if true",
+    )
+    pkg_gazebo_ros = get_package_share_directory("gazebo_ros")
+    pkg_andino_gazebo = get_package_share_directory("andino_gazebo")
+
     # Include andino
     include_andino = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_andino_gazebo, 'launch', 'spawn_robot.launch.py'),
+            os.path.join(pkg_andino_gazebo, "launch", "spawn_robot.launch.py")
         ),
-        launch_arguments={'use_gazebo_ros_control':'true'}.items()
+        launch_arguments={"use_gazebo_ros_control": "true"}.items(),
     )
 
     # Include ros control
 
     load_joint_state_controller = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-             'joint_state_broadcaster'],
-        output='screen'
+        cmd=[
+            "ros2",
+            "control",
+            "load_controller",
+            "--set-state",
+            "active",
+            "joint_state_broadcaster",
+        ],
+        output="screen",
     )
 
     load_diff_drive_base_controller = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-             'diff_controller'],
-        output='screen'
+        cmd=[
+            "ros2",
+            "control",
+            "load_controller",
+            "--set-state",
+            "active",
+            "diff_controller",
+        ],
+        output="screen",
     )
 
     # Gazebo launch
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_gazebo_ros, 'launch', 'gazebo.launch.py'),
+            os.path.join(pkg_gazebo_ros, "launch", "gazebo.launch.py")
         )
-        )
-    
-    # RViz
-    rviz = Node(
-        package= 'rviz2',
-        executable= 'rviz2',
-        parameters= [{'use_sim_time':use_sim_time}],
-        arguments=['-d', os.path.join(pkg_andino_gazebo, 'rviz', 'andino_gazebo.rviz')],
-        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
-    andino_visualization_timer = TimerAction(period=8.0, actions=[load_joint_state_controller, rviz])
-    return LaunchDescription([
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=load_joint_state_controller,
-                on_exit=[load_diff_drive_base_controller],
-            )
-        ),
-        use_sim_time_argument,
-        DeclareLaunchArgument(
-          'world',
-          default_value=[os.path.join(pkg_andino_gazebo, 'worlds', 'empty_world.world'), ''],
-          description='SDF world file'),
-        DeclareLaunchArgument('rviz', default_value='true',
-                              description='Open RViz.'),
-        gazebo,
-        include_andino,
-        andino_visualization_timer
-    ])
+    # RViz
+    rviz = Node(
+        package="rviz2",
+        executable="rviz2",
+        parameters=[{"use_sim_time": use_sim_time}],
+        arguments=["-d", os.path.join(pkg_andino_gazebo, "rviz", "andino_gazebo.rviz")],
+        condition=IfCondition(LaunchConfiguration("rviz")),
+    )
+
+    andino_visualization_timer = TimerAction(
+        period=8.0, actions=[load_joint_state_controller, rviz]
+    )
+    return LaunchDescription(
+        [
+            RegisterEventHandler(
+                event_handler=OnProcessExit(
+                    target_action=load_joint_state_controller,
+                    on_exit=[load_diff_drive_base_controller],
+                )
+            ),
+            use_sim_time_argument,
+            DeclareLaunchArgument(
+                "world",
+                default_value=[
+                    os.path.join(pkg_andino_gazebo, "worlds", "empty_world.world"),
+                    "",
+                ],
+                description="SDF world file",
+            ),
+            DeclareLaunchArgument(
+                "rviz", default_value="true", description="Open RViz."
+            ),
+            gazebo,
+            include_andino,
+            andino_visualization_timer,
+        ]
+    )
